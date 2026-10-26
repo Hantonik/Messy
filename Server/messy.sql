@@ -7,22 +7,32 @@ create type conversation_type as enum (
     'GROUP'
 );
 
-create type content_type as enum (
-    'TEXT',
-    'FILE',
+create type device_type as enum (
+    'PHONE',
+    'TABLET',
+    'COMPUTER',
+    'LAPTOP',
+    'OTHER'
+);
+
+create type message_type as enum (
+    'CLIENT_TEXT',
+    'CLIENT_VOICE',
     'SYSTEM'
 );
 
 create table clients (
     id uuid primary key default gen_random_uuid(),
 
-    first_name varchar(255) not null,
-    last_name varchar(255) not null,
+    icon_id uuid,
+    encrypted_first_name bytea not null,
+    encrypted_last_name bytea not null,
 
     email varchar(320) not null,
     phone varchar(20),
 
-    password_hash bytea not null,
+    login_hash bytea not null,
+    password_salt bytea not null,
 
     public_key bytea not null,
 
@@ -30,20 +40,49 @@ create table clients (
     private_key_nonce bytea not null,
 
     created_at timestamptz not null default now(),
+    deleted_at timestamptz,
     last_seen_at timestamptz,
 
-    is_deleted boolean not null default false,
+    version bigint not null,
 
-    version bigint not null
+    constraint chk_clients_phone_numbers_only check (phone ~ '^[0-9]+$')
 );
 
 create unique index ux_clients_email_lower on clients(lower(email));
 create unique index ux_clients_phone on clients(phone) nulls distinct;
 
+create table client_relations (
+    client_id uuid not null references clients(id) on delete cascade,
+    target_id uuid not null references clients(id) on delete cascade,
+
+    muted_until timestamptz,
+
+    is_blocked bool not null default false,
+
+    version bigint not null,
+
+    primary key (client_id, target_id)
+);
+
+create table devices (
+    id uuid not null default gen_random_uuid(),
+    mac_address macaddr8 not null,
+
+    name varchar(255) not null,
+    os varchar(255) not null,
+    type device_type not null default 'OTHER',
+
+    primary key (id, mac_address)
+);
+
+create unique index ux_devices_id on devices(id);
+create unique index ux_devices_mac_address on devices(mac_address);
+
 create table client_sessions (
     id uuid primary key default gen_random_uuid(),
 
     client_id uuid not null references clients(id) on delete cascade,
+    device_id uuid references devices(id) on delete cascade,
 
     token_hash bytea not null,
 
@@ -51,9 +90,7 @@ create table client_sessions (
     expires_at timestamptz not null,
 
     last_used_at timestamptz,
-    revoked_at timestamptz,
-
-    version bigint not null
+    revoked_at timestamptz
 );
 
 create unique index ux_client_sessions_token_hash on client_sessions(token_hash);
@@ -66,10 +103,7 @@ create table conversations (
 
     type conversation_type not null,
 
-    created_by uuid references clients(id) on delete set null,
-
     created_at timestamptz not null default now(),
-    updated_at timestamptz not null default now(),
 
     last_message_index integer not null default 0,
 
@@ -80,8 +114,15 @@ create table conversation_participants (
     conversation_id uuid not null references conversations(id) on delete cascade,
     client_id uuid not null references clients(id) on delete cascade,
 
+    nickname varchar(255),
+    muted_until timestamptz,
+    read_only bool not null default false,
+    is_admin bool not null default false,
+
     joined_at timestamptz not null default now(),
     left_at timestamptz,
+
+    version bigint not null,
 
     primary key (conversation_id, client_id)
 );
@@ -92,7 +133,17 @@ create table direct_conversations (
     client_a_id uuid not null references clients(id) on delete cascade,
     client_b_id uuid not null references clients(id) on delete cascade,
 
-    constraint chk_direct_clients_not_same check (client_a_id <> client_b_id)
+    constraint chk_direct_conversations_clients_not_same check (client_a_id <> client_b_id),
+
+    constraint fk_direct_conversations_client_a_is_participant
+        foreign key (conversation_id, client_a_id)
+            references conversation_participants(conversation_id, client_id)
+            on delete restrict,
+
+    constraint fk_direct_conversations_client_b_is_participant
+        foreign key (conversation_id, client_b_id)
+            references conversation_participants(conversation_id, client_id)
+            on delete restrict
 );
 
 create unique index ux_direct_conversations_unordered_pair on direct_conversations (
@@ -104,8 +155,10 @@ create table group_conversations (
     conversation_id uuid primary key references conversations(id) on delete cascade,
 
     name varchar(100) not null,
+    icon_id uuid,
     description text,
 
+    created_by uuid references clients(id) on delete set null,
     owner_id uuid references clients(id) on delete set null,
 
     version bigint not null
@@ -127,17 +180,25 @@ create table files (
     owner_id uuid references clients(id) on delete set null,
 
     original_name varchar(255) not null,
-    mime_type varchar(255),
+    mime_type varchar(255) not null,
 
     size_bytes bigint not null,
     sha256 bytea not null,
 
-    created_at timestamptz not null default now(),
-
-    version bigint not null
+    created_at timestamptz not null default now()
 );
 
-create unique index ux_files_sha256 on files(sha256);
+create unique index ux_files_size_bytes_sha256 on files(size_bytes, sha256);
+
+alter table clients add constraint fk_clients_icon_id
+    foreign key (icon_id)
+        references files(id)
+        on delete set null;
+
+alter table group_conversations add constraint fk_group_conversations_icon_id
+    foreign key (icon_id)
+        references files(id)
+        on delete set null;
 
 create table file_chunks (
     file_id uuid not null references files(id) on delete cascade,
@@ -153,55 +214,48 @@ create table messages (
     id uuid primary key default gen_random_uuid(),
     message_index integer not null,
 
-    conversation_id uuid not null,
-    sender_id uuid not null,
+    conversation_id uuid not null references conversations(id) on delete cascade,
+    sender_id uuid not null references clients(id) on delete restrict,
 
-    content_type content_type not null,
+    message_type message_type not null,
+    is_silent bool not null default false,
 
     encrypted_content bytea,
-    content_nonce bytea not null,
+    content_nonce bytea,
 
     sent_at timestamptz not null default now(),
+    delivered_at timestamptz,
+
+    updated_at timestamptz not null default now(),
     deleted_at timestamptz,
 
     version bigint not null,
 
-    constraint fk_messages_conversation
-        foreign key (conversation_id)
-        references conversations(id)
-        on delete cascade,
-
-    constraint fk_messages_sender
-        foreign key (sender_id)
-        references clients(id)
-        on delete restrict,
-
     constraint fk_messages_sender_is_participant
         foreign key (conversation_id, sender_id)
         references conversation_participants(conversation_id, client_id)
-        on delete restrict
+        on delete restrict,
+
+    constraint chk_messages_content_null check ((encrypted_content is null) = (content_nonce is null))
 );
 
-create index ix_messages_conversation_sent_at
-    on messages(conversation_id, sent_at DESC);
-create index ix_messages_sender
-    on messages(sender_id);
+create unique index ux_messages_conversation_message_index on messages(conversation_id, message_index desc);
 
-create unique index ux_messages_conversation_message_index
-    on messages(conversation_id, message_index);
+create index ix_messages_sender on messages(sender_id);
+create index ix_messages_conversation_updated_at on messages(conversation_id, updated_at);
 
 create or replace function assign_message_index() returns trigger language plpgsql
 as $$
-begin
-    update conversations set last_message_index = last_message_index + 1, updated_at = now()
-    where id = new.conversation_id returning last_message_index into new.message_index;
+    begin
+        update conversations set last_message_index = last_message_index + 1
+        where id = new.conversation_id returning last_message_index into new.message_index;
 
-    if new.message_index is null then
-        raise exception 'Conversation with id % does not exist', new.conversation_id;
-    end if;
+        if new.message_index is null then
+            raise exception 'Conversation with id % does not exist', new.conversation_id;
+        end if;
 
-    return new;
-end;
+        return new;
+    end;
 $$;
 
 create trigger trg_assign_message_index before insert on messages
@@ -220,7 +274,6 @@ create table message_secrets (
     client_id uuid not null references clients(id) on delete cascade,
 
     encrypted_key bytea not null,
-    key_nonce bytea not null,
 
     primary key (message_id, client_id)
 );
@@ -229,12 +282,24 @@ create table message_receipts (
     message_id uuid not null references messages(id) on delete cascade,
     client_id uuid not null references clients(id) on delete cascade,
 
-    delivered_at timestamptz,
     read_at timestamptz,
-
-    version bigint not null,
 
     primary key (message_id, client_id)
 );
+
+create or replace function check_client_is_not_sender() returns trigger language plpgsql
+as $$
+    begin
+        if exists(select 1 from messages where id = new.message_id and sender_id = new.client_id) then
+            raise exception 'Cannot add record with client (%) that is sender of this message (%)', new.client_id, new.message_id;
+        end if;
+
+        return new;
+    end;
+$$;
+
+create trigger trg_check_client_is_not_sender before insert on message_receipts
+    for each row
+    execute function check_client_is_not_sender();
 
 commit;
