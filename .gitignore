@@ -42,3 +42,6 @@ bin/
 ### Mac OS ###
 .DS_Store
 /.idea/
+/Server/.env
+/client/app/desktop/electron/node_modules/
+/local.properties

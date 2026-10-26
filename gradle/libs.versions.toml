@@ -1,0 +1,84 @@
+[versions]
+project-label = "dev"
+
+jvmVersion = "25"
+android-compileSdk = "37"
+android-minSdk = "31"
+
+lombok = "1.18.48"
+netty = "4.2.17.Final"
+guava = "33.7.1-jre"
+commonsIo = "2.22.0"
+cryptography = "0.6.0"
+grpc = "1.84.0"
+protoc = "4.36.2"
+log4j = "2.26.1"
+slf4j = "2.0.19"
+postgresqlDriver = "42.7.13"
+kotlinx = "1.11.0"
+kotlinLogging = "8.0.4"
+composeMaterial3 = "1.9.0"
+androidxActitvity = "1.13.0"
+androidxLifecycle = "2.11.0"
+ktor = "3.6.0"
+
+springframework = "4.1.1"
+springDependencyManagement = "1.1.7"
+protobuf = "0.10.0"
+lombok-plugin = "9.5.0"
+kotlin = "2.4.20"
+agp = "9.1.1"
+compose = "1.12.0"
+
+[libraries]
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+spring-data = { module = "org.springframework.boot:spring-boot-starter-data-jpa", version.ref = "springframework" }
+spring-grcpClient = { module = "org.springframework.boot:spring-boot-starter-grpc-client", version.ref = "springframework" }
+spring-grpcServer = { module = "org.springframework.boot:spring-boot-starter-grpc-server", version.ref = "springframework" }
+netty-buffer = { module = "io.netty:netty-buffer", version.ref = "netty" }
+netty-codec = { module = "io.netty:netty-codec", version.ref = "netty" }
+netty-common = { module = "io.netty:netty-common", version.ref = "netty" }
+netty-handler = { module = "io.netty:netty-handler", version.ref = "netty" }
+netty-transport = { module = "io.netty:netty-transport", version.ref = "netty" }
+netty-transport-classesEpoll = { module = "io.netty:netty-transport-classes-epoll", version.ref = "netty" }
+netty-transport-nativeEpollLinux = { module = "io.netty:netty-transport-native-epoll", version.ref = "netty" }
+netty-transport-classesKqueue = { module = "io.netty:netty-transport-classes-kqueue", version.ref = "netty" }
+netty-transport-nativeKqueueOsx = { module = "io.netty:netty-transport-native-kqueue", version.ref = "netty" }
+google-guava = { module = "com.google.guava:guava", version.ref = "guava" }
+commons-io = { module = "commons-io:commons-io", version.ref = "commonsIo" }
+cryptography-core = { module = "dev.whyoleg.cryptography:cryptography-core", version.ref = "cryptography" }
+cryptography-provider = { module = "dev.whyoleg.cryptography:cryptography-provider-optimal", version.ref = "cryptography" }
+cryptography-core-jvm = { module = "dev.whyoleg.cryptography:cryptography-core-jvm", version.ref = "cryptography" }
+cryptography-provider-jvm = { module = "dev.whyoleg.cryptography:cryptography-provider-jdk", version.ref = "cryptography" }
+grpc-nettyShaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
+grpc-protobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpc" }
+grpc-stub = { module = "io.grpc:grpc-stub", version.ref = "grpc" }
+grpc-protocGen = { module = "io.grpc:protoc-gen-grpc-java", version.ref = "grpc" }
+protoc = { module = "com.google.protobuf:protoc", version.ref = "protoc" }
+log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
+log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
+log4j-slf4j2 = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version.ref = "log4j" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+postgresql-driver = { module = "org.postgresql:postgresql", version.ref = "postgresqlDriver" }
+kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx" }
+kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlinLogging" }
+compose-components = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose" }
+compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose" }
+compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "composeMaterial3" }
+compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose" }
+compose-ui-toolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "compose" }
+compose-ui-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "compose" }
+compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidxActitvity" }
+androidx-lifecycle-viewmodelCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidxLifecycle" }
+androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidxLifecycle" }
+ktor-network = { module = "io.ktor:ktor-network", version.ref = "ktor" }
+ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
+
+[plugins]
+spring-framework = { id = "org.springframework.boot", version.ref = "springframework" }
+spring-dependencyManagement = { id = "io.spring.dependency-management", version.ref = "springDependencyManagement" }
+protobuf = { id = "com.google.protobuf", version.ref = "protobuf" }
+lombok = { id = "io.freefair.lombok", version.ref = "lombok-plugin" }
+kotlin-lombok = { id = "org.jetbrains.kotlin.plugin.lombok", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
