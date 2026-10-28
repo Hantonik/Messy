@@ -8,21 +8,21 @@ create type conversation_type as enum (
 );
 
 create type device_type as enum (
-    'PHONE',
-    'TABLET',
-    'COMPUTER',
-    'LAPTOP',
+    'DESKTOP',
+    'MOBILE',
+    'WEB',
     'OTHER'
 );
 
 create type message_type as enum (
-    'CLIENT_TEXT',
-    'CLIENT_VOICE',
+    'TEXT',
+    'VOICE',
     'SYSTEM'
 );
 
 create table clients (
-    id uuid primary key default gen_random_uuid(),
+    id uuid primary key default uuidv7(),
+    public_id uuid not null unique default gen_random_uuid(),
 
     icon_id uuid,
     encrypted_first_name bytea not null,
@@ -38,6 +38,9 @@ create table clients (
 
     encrypted_private_key bytea not null,
     private_key_nonce bytea not null,
+
+    encrypted_data_key bytea not null,
+    data_key_nonce bytea not null,
 
     created_at timestamptz not null default now(),
     deleted_at timestamptz,
@@ -65,8 +68,10 @@ create table client_relations (
 );
 
 create table devices (
-    id uuid not null default gen_random_uuid(),
-    mac_address macaddr8 not null,
+    id uuid not null unique default uuidv7(),
+    public_id uuid not null unique default gen_random_uuid(),
+
+    mac_address macaddr8 not null unique,
 
     name varchar(255) not null,
     os varchar(255) not null,
@@ -75,16 +80,14 @@ create table devices (
     primary key (id, mac_address)
 );
 
-create unique index ux_devices_id on devices(id);
-create unique index ux_devices_mac_address on devices(mac_address);
-
 create table client_sessions (
-    id uuid primary key default gen_random_uuid(),
+    id uuid primary key default uuidv7(),
+    public_id uuid not null unique default gen_random_uuid(),
 
     client_id uuid not null references clients(id) on delete cascade,
     device_id uuid references devices(id) on delete cascade,
 
-    token_hash bytea not null,
+    token_hash bytea not null unique,
 
     created_at timestamptz not null default now(),
     expires_at timestamptz not null,
@@ -93,13 +96,12 @@ create table client_sessions (
     revoked_at timestamptz
 );
 
-create unique index ux_client_sessions_token_hash on client_sessions(token_hash);
-
 create index ix_client_sessions_client_id on client_sessions(client_id);
 create index ix_client_sessions_expires_at on client_sessions(expires_at);
 
 create table conversations (
-    id uuid primary key default gen_random_uuid(),
+    id uuid primary key default uuidv7(),
+    public_id uuid not null unique default gen_random_uuid(),
 
     type conversation_type not null,
 
@@ -175,7 +177,8 @@ create table group_conversation_secrets (
 );
 
 create table files (
-    id uuid primary key default gen_random_uuid(),
+    id uuid primary key default uuidv7(),
+    public_id uuid not null unique default gen_random_uuid(),
 
     owner_id uuid references clients(id) on delete set null,
 
@@ -211,7 +214,9 @@ create table file_chunks (
 );
 
 create table messages (
-    id uuid primary key default gen_random_uuid(),
+    id uuid primary key default uuidv7(),
+    public_id uuid not null unique default gen_random_uuid(),
+
     message_index integer not null,
 
     conversation_id uuid not null references conversations(id) on delete cascade,
