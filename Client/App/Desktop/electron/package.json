@@ -1,0 +1,15 @@
+{
+  "name": "messy-desktop",
+  "version": "0.0.0-dev",
+  "description": "TODO",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "author": "Hantonik",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "electron": "43.4.1"
+  }
+}
