@@ -1,0 +1,373 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option java_multiple_files = true;
+option java_package = "hantonik.messy.server.grpc.internal";
+
+service ServerTunnel {
+  rpc TunnelSession (stream InternalEventC2S) returns (stream InternalEventS2C);
+}
+
+message InternalEventC2S {
+  bytes connection_id = 1;
+
+  oneof stage_event {
+    NegotiationStageC2S negotiation = 2;
+    AuthStageC2S auth = 3;
+    DataStageC2S data = 4;
+
+    S2CDisconnectMessage disconnect = 5;
+  }
+}
+
+message InternalEventS2C {
+  bytes connection_id = 1;
+
+  oneof stage_event {
+    NegotiationStageS2C negotiation = 2;
+    AuthStageS2C auth = 3;
+    DataStageS2C data = 4;
+  }
+}
+
+// NEGOTIATION
+message NegotiationStageC2S {
+  oneof message {
+    C2SNegotiationInitMessage init = 1;
+  }
+}
+
+message NegotiationStageS2C {
+  oneof message {
+    S2CNegotiationAckMessage ack = 1;
+  }
+}
+
+message C2SNegotiationInitMessage {
+  int32 protocol_version = 2;
+
+  DeviceInfo device = 3;
+}
+
+message S2CNegotiationAckMessage {
+  int32 protocol_version = 1;
+}
+
+// AUTH
+message AuthStageC2S {
+  oneof message {
+    C2SAuthLoginRequestMessage login_request = 1;
+    C2SAuthRegisterRequestMessage register_request = 2;
+    C2SAuthSessionResumeRequestMessage session_resume_request = 3;
+    C2SAuthLogoutMessage logout = 4;
+  }
+}
+
+message AuthStageS2C {
+  oneof message {
+    S2CAuthSuccessResponseMessage success_response = 1;
+    S2CAuthSessionTokenMessage session_token = 2;
+    S2CAuthFailedResponseMessage failed_response = 3;
+  }
+}
+
+message C2SAuthLoginRequestMessage {
+  bytes device_id = 1;
+
+  string login = 2;
+  bytes password_hash = 3;
+
+  bool one_time_login = 4;
+}
+
+message C2SAuthRegisterRequestMessage {
+  bytes device_id = 1;
+
+  string first_name = 2;
+  string last_name = 3;
+
+  string email = 4;
+  optional string phone = 5;
+
+  bytes password_hash = 6;
+
+  bytes public_key = 7;
+  bytes encrypted_private_key = 8;
+
+  bool one_time_login = 9;
+}
+
+message C2SAuthSessionResumeRequestMessage {
+  bytes device_id = 1;
+
+  bytes client_id = 2;
+  bytes session_token = 3;
+}
+
+message C2SAuthLogoutMessage {}
+
+message S2CAuthSuccessResponseMessage {
+  ClientProfile client_profile = 1;
+  bytes encrypted_private_key = 2;
+}
+
+message S2CAuthSessionTokenMessage {
+  bytes session_token = 1;
+}
+
+message S2CAuthFailedResponseMessage {
+  Reason reason = 1;
+}
+
+// DATA
+message DataStageC2S {
+  oneof message {
+    C2SDataPingMessage ping = 1;
+    C2SDataRelationsRequestMessage relations_request = 2;
+    C2SDataStatusRequestMessage status_request = 3;
+    C2SDataTypingMessage typing = 4;
+    C2SDataStoppedTypingMessage stopped_typing = 5;
+    C2SDataSentMessageMessage sent_message = 6;
+    C2SDataReceivedMessageMessage received_message = 7;
+    C2SDataReadMessageMessage read_message = 8;
+    C2SDataStatusUpdateResponseMessage status_update_response = 9;
+  }
+}
+
+message DataStageS2C {
+  oneof message {
+    S2CDataPongMessage pong = 1;
+    S2CDataRelationsResponseMessage relations_response = 2;
+    S2CDataStatusResponseMessage status_response = 3;
+    S2CDataMessagesMessage messages = 4;
+    S2CDataClientTypingMessage client_typing = 5;
+    S2CDataClientStoppedTypingMessage client_stopped_typing = 6;
+    S2CDataSentMessageConfirmMessage sent_message_confirm = 7;
+    S2CDataClientSentMessageMessage client_sent_message = 8;
+    S2CDataClientReceivedMessageMessage client_received_message = 9;
+    S2CDataReadMessageConfirmMessage read_message_confirm = 10;
+    S2CDataClientReadMessageMessage client_read_message = 11;
+    S2CDataStatusUpdateRequestMessage status_update_request = 12;
+    S2CDataUpdateStatusMessage update_status = 13;
+  }
+}
+
+message C2SDataPingMessage {
+  int64 time = 1;
+}
+
+message C2SDataRelationsRequestMessage {}
+
+message C2SDataStatusRequestMessage {}
+
+message C2SDataTypingMessage {
+  bytes conversation_id = 1;
+}
+
+message C2SDataStoppedTypingMessage {
+  bytes conversation_id = 1;
+}
+
+message C2SDataSentMessageMessage {
+  EncryptedMessage encrypted_message = 1;
+}
+
+message C2SDataReceivedMessageMessage {
+  bytes message_id = 1;
+}
+
+message C2SDataReadMessageMessage {
+  bytes conversation_id = 1;
+  int32 read_to_index = 2;
+}
+
+message C2SDataStatusUpdateResponseMessage {
+  ClientActivity activity = 1;
+}
+
+message S2CDataPongMessage {
+  int64 time = 1;
+}
+
+message S2CDataRelationsResponseMessage {
+  repeated RelatedClientData clients = 1;
+}
+
+message S2CDataStatusResponseMessage {
+  repeated ClientActivity activities = 1;
+}
+
+message S2CDataMessagesMessage {
+  repeated EncryptedMessage encrypted_messages = 1;
+}
+
+message S2CDataClientTypingMessage {
+  bytes client_id = 1;
+  bytes conversation_id = 2;
+}
+
+message S2CDataClientStoppedTypingMessage {
+  bytes client_id = 1;
+  bytes conversation_id = 2;
+}
+
+message S2CDataSentMessageConfirmMessage {
+  bytes message_id = 1;
+  google.protobuf.Timestamp sent_at = 2;
+}
+
+message S2CDataClientSentMessageMessage {
+  EncryptedMessage encrypted_message = 1;
+}
+
+message S2CDataClientReceivedMessageMessage {
+  bytes client_id = 1;
+  bytes message_id = 2;
+}
+
+message S2CDataReadMessageConfirmMessage {
+  bytes client_id = 1;
+  google.protobuf.Timestamp read_at = 2;
+}
+
+message S2CDataClientReadMessageMessage {
+  bytes client_id = 1;
+  bytes conversation_id = 2;
+  int32 read_to_index = 3;
+}
+
+message S2CDataStatusUpdateRequestMessage {}
+
+message S2CDataUpdateStatusMessage {
+  bytes client_id = 1;
+  ClientActivity activity = 2;
+}
+
+message S2CDisconnectMessage {
+  string reason = 1;
+
+  ConnectionStage connection_stage = 2;
+}
+
+message DeviceInfo {
+  bytes mac_address = 1;
+
+  string name = 2;
+  string os = 3;
+  DeviceType device_type = 4;
+}
+
+message EncryptedContent {
+  bytes encrypted_content = 1;
+  bytes content_nonce = 2;
+}
+
+message NamedEncryptedKeysMapEntry {
+  bytes client_id = 1;
+  bytes encrypted_key = 2;
+}
+
+message FileMetadata {
+  optional bytes file_id = 1;
+  bytes owner_id = 2;
+
+  string original_name = 3;
+  string mime_type = 4;
+
+  int64 size_bytes = 5;
+  bytes sha256 = 6;
+
+  optional google.protobuf.Timestamp created_at = 7;
+}
+
+message NamedReadAtMapEntry {
+  bytes client_id = 1;
+  google.protobuf.Timestamp read_at = 2;
+}
+
+message EncryptedMessage {
+  optional bytes message_id = 1;
+  int32 index = 2;
+
+  bytes conversation_id = 3;
+  bytes sender_id = 4;
+
+  MessageType type = 5;
+  bool isSilent = 6;
+  optional EncryptedContent encrypted_content = 7;
+  repeated NamedEncryptedKeysMapEntry named_encrypted_keys = 8;
+
+  repeated FileMetadata attachments = 9;
+
+  optional google.protobuf.Timestamp sent_at = 10;
+  optional google.protobuf.Timestamp delivered_at = 11;
+  NamedReadAtMapEntry named_read_at = 12;
+  optional google.protobuf.Timestamp updated_at = 13;
+  optional google.protobuf.Timestamp deleted_at = 14;
+}
+
+message ClientData {
+  bytes id = 1;
+
+  optional FileMetadata icon = 2;
+  string first_name = 3;
+  string last_name = 4;
+
+  bytes public_key = 5;
+
+  google.protobuf.Timestamp created_at = 6;
+  optional google.protobuf.Timestamp deleted_at = 7;
+}
+
+message ClientProfile {
+  ClientData base_client_data = 1;
+
+  string email = 2;
+  optional string phone = 3;
+
+  bytes encrypted_private_key = 4;
+}
+
+message RelatedClientData {
+  ClientData base_client_data = 1;
+
+  optional google.protobuf.Timestamp muted_until = 2;
+  bool is_blocked = 3;
+}
+
+message ClientActivity {
+  bytes client_id = 1;
+
+  optional google.protobuf.Timestamp last_seen_at = 2;
+  optional google.protobuf.Timestamp active_since = 3;
+}
+
+enum ConnectionStage {
+  CONNECTION_STAGE_NEGOTIATION = 0;
+  CONNECTION_STAGE_CRYPTO = 1;
+  CONNECTION_STAGE_AUTH = 2;
+  CONNECTION_STAGE_DATA = 3;
+}
+
+enum DeviceType {
+  DEVICE_TYPE_OTHER = 0;
+  DEVICE_TYPE_PHONE = 1;
+  DEVICE_TYPE_TABLET = 2;
+  DEVICE_TYPE_COMPUTER = 3;
+  DEVICE_TYPE_LAPTOP = 4;
+}
+
+enum Reason {
+  REASON_UNSPECIFIED = 0;
+  REASON_INVALID_SESSION_TOKEN = 1;
+  REASON_WRONG_CREDENTIALS = 2;
+  REASON_ALREADY_EXISTS = 3;
+  REASON_NO_SUCH_USER = 4;
+}
+
+enum MessageType {
+  MESSAGE_TYPE_CLIENT_TEXT = 0;
+  MESSAGE_TYPE_CLIENT_VOICE = 1;
+  MESSAGE_TYPE_SYSTEM = 2;
+}
