@@ -37,7 +37,7 @@ create table clients (
     public_key bytea not null,
 
     encrypted_private_key bytea not null,
-    private_key_nonce bytea not null,
+    private_key_iv bytea not null,
 
     encrypted_data_key bytea not null,
     data_key_nonce bytea not null,

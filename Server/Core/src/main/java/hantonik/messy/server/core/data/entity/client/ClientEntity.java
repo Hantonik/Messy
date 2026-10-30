@@ -48,7 +48,7 @@ public class ClientEntity {
     private byte[] publicKey;
 
     private byte[] encryptedPrivateKey;
-    private byte[] privateKeyNonce;
+    private byte[] privateKeyIv;
 
     private byte[] encryptedDataKey;
     private byte[] dataKeyNonce;
@@ -69,7 +69,7 @@ public class ClientEntity {
     @Version
     private Long version;
 
-    public ClientEntity(byte[] encryptedFirstName, byte[] encryptedLastName, String email, @Nullable String phone, byte[] loginHash, byte[] passwordSalt, XDH.PublicKey publicKey, byte[] encryptedPrivateKey, byte[] privateKeyNonce, byte[] encryptedDataKey, byte[] dataKeyNonce) {
+    public ClientEntity(byte[] encryptedFirstName, byte[] encryptedLastName, String email, @Nullable String phone, byte[] loginHash, byte[] passwordSalt, XDH.PublicKey publicKey, byte[] encryptedPrivateKey, byte[] privateKeyIv, byte[] encryptedDataKey, byte[] dataKeyNonce) {
         this.encryptedFirstName = encryptedFirstName;
         this.encryptedLastName = encryptedLastName;
 
@@ -82,7 +82,7 @@ public class ClientEntity {
         this.publicKey = Crypt.encodeXDHPublicKey(publicKey);
 
         this.encryptedPrivateKey = encryptedPrivateKey;
-        this.privateKeyNonce = privateKeyNonce;
+        this.privateKeyIv = privateKeyIv;
 
         this.encryptedDataKey = encryptedDataKey;
         this.dataKeyNonce = dataKeyNonce;
