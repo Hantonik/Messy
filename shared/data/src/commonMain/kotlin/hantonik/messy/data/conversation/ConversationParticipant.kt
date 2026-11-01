@@ -6,5 +6,5 @@ import kotlin.uuid.Uuid
 data class ConversationParticipant(val conversationId: Uuid, val clientId: Uuid,
                                    val nickname: String?,
                                    val mutedUntil: Instant?,
-                                   val readOnly: Boolean, val isAdmin: Boolean,
+                                   val readOnly: Boolean, val admin: Boolean,
                                    val joinedAt: Instant, val leftAt: Instant?)

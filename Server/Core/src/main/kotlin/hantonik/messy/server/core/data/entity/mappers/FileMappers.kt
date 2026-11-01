@@ -9,5 +9,5 @@ fun FileEntity.toFileMetadata(): FileMetadata {
     if (this.id == null)
         throw IllegalStateException("Cannot access data before database read")
 
-    return FileMetadata(this.id.toKotlinUuid(), this.owner?.id!!.toKotlinUuid(), this.originalName, this.mimeType!!, this.sizeBytes, this.sha256, this.createdAt?.toKotlinInstant())
+    return FileMetadata(this.id.toKotlinUuid(), this.uploadedBy?.id!!.toKotlinUuid(), this.originalName, this.mimeType!!, this.sizeBytes, this.sha256, this.createdAt?.toKotlinInstant())
 }
