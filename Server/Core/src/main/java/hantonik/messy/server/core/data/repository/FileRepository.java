@@ -18,7 +18,7 @@ public interface FileRepository extends JpaRepository<FileEntity, UUID> {
     Optional<FileEntity> findBySizeBytesAndSha256(long sizeBytes, byte[] sha256);
 
     @Query("SELECT f FROM FileEntity f WHERE f.uploadedBy = :uploadedBy")
-    Stream<FileEntity> streamAllByCreator(@Param("createdBy") ClientEntity uploadedBy);
+    Stream<FileEntity> streamAllByCreator(@Param("uploadedBy") ClientEntity uploadedBy);
 
     List<FileEntity> findAllByMessage(MessageEntity message);
 }
