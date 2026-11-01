@@ -20,12 +20,12 @@ public class ClientRelationEntity {
     private ClientRelationCompositeKey key = new ClientRelationCompositeKey();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("clientId")
-    @JoinColumn(name = "client_id")
+    @MapsId("clientInternalId")
+    @JoinColumn(name = "client_internal_id")
     private ClientEntity client;
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("targetId")
-    @JoinColumn(name = "target_id")
+    @MapsId("targetInternalId")
+    @JoinColumn(name = "target_internal_id")
     private ClientEntity target;
 
     @Setter
@@ -35,9 +35,14 @@ public class ClientRelationEntity {
     @Generated(writable = true)
     private Boolean isBlocked;
 
-    @Getter(AccessLevel.PRIVATE)
     @Version
+    @Getter(AccessLevel.PRIVATE)
     private Long version;
+
+    public ClientRelationEntity(ClientEntity client, ClientEntity target) {
+        this.client = client;
+        this.target = target;
+    }
 
     @Override
     public boolean equals(Object obj) {
@@ -53,7 +58,7 @@ public class ClientRelationEntity {
 
     @Override
     public int hashCode() {
-        return this.key != null ? this.key.hashCode() : getClass().hashCode();
+        return this.key != null ? this.key.hashCode() : this.getClass().hashCode();
     }
 
     @Override

@@ -24,10 +24,14 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ConversationEntity {
+    @Generated
+    @Column(updatable = false)
+    private UUID id;
     @Id
     @Generated
-    private UUID id;
+    private UUID internalId;
 
+    @Column(updatable = false)
     @Enumerated(EnumType.STRING)
     private ConversationType type;
 
@@ -36,15 +40,21 @@ public class ConversationEntity {
     @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL)
     private List<MessageEntity> messages = Lists.newArrayList();
 
+    @Column(updatable = false)
     @Generated(writable = true)
     private Instant createdAt;
 
     @Generated
+    @Column(updatable = false)
     private Integer lastMessageIndex;
 
-    @Getter(AccessLevel.PRIVATE)
     @Version
+    @Getter(AccessLevel.PRIVATE)
     private Long version;
+
+    protected ConversationEntity(ConversationType type) {
+        this.type = type;
+    }
 
     @Override
     public boolean equals(Object obj) {
@@ -65,7 +75,8 @@ public class ConversationEntity {
 
     @Override
     public String toString() {
-        return "ConversationEntity[messageId=" + this.id + ", type=" + this.type +
+        return "ConversationEntity[internalId=" + this.id + ", internalId=" + this.internalId +
+                ", type=" + this.type +
                 ", createdAt=" + this.createdAt + "]";
     }
 }

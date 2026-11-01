@@ -1,10 +1,7 @@
 package hantonik.messy.server.core.data.key;
 
 import jakarta.persistence.Embeddable;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -14,12 +11,13 @@ import java.util.UUID;
 @Setter
 @EqualsAndHashCode
 @NoArgsConstructor
+@AllArgsConstructor
 public class MessageClientCompositeKey implements Serializable {
-    private UUID messageId;
-    private UUID clientId;
+    private UUID messageInternalId;
+    private UUID clientInternalId;
 
     @Override
     public String toString() {
-        return "{messageId=" + this.messageId + ", clientId=" + this.clientId + "}";
+        return "{messageInternalId=" + this.messageInternalId + ", clientInternalId=" + this.clientInternalId + "}";
     }
 }

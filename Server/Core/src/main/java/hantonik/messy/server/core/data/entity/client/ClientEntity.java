@@ -22,15 +22,16 @@ import java.util.UUID;
 @Table(name = "clients")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ClientEntity {
+    @Generated
+    @Column(updatable = false)
+    private UUID id;
     @Id
     @Generated
-    private UUID id;
-    @Generated
-    private UUID publicId;
+    private UUID internalId;
 
     @Setter
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "icon_id")
+    @JoinColumn(name = "icon_internal_id")
     @Nullable
     private FileEntity icon;
     private byte[] encryptedFirstName;
@@ -51,12 +52,13 @@ public class ClientEntity {
     private byte[] privateKeyIv;
 
     private byte[] encryptedDataKey;
-    private byte[] dataKeyNonce;
+    private byte[] dataKeyIv;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
     private List<ClientSessionEntity> sessions = Lists.newArrayList();
 
     @Generated(writable = true)
+    @Column(updatable = false)
     private Instant createdAt;
     @Setter
     @Nullable
@@ -65,11 +67,11 @@ public class ClientEntity {
     @Nullable
     private Instant lastSeenAt;
 
-    @Getter(AccessLevel.PRIVATE)
     @Version
+    @Getter(AccessLevel.PRIVATE)
     private Long version;
 
-    public ClientEntity(byte[] encryptedFirstName, byte[] encryptedLastName, String email, @Nullable String phone, byte[] loginHash, byte[] passwordSalt, XDH.PublicKey publicKey, byte[] encryptedPrivateKey, byte[] privateKeyIv, byte[] encryptedDataKey, byte[] dataKeyNonce) {
+    public ClientEntity(byte[] encryptedFirstName, byte[] encryptedLastName, String email, @Nullable String phone, byte[] loginHash, byte[] passwordSalt, XDH.PublicKey publicKey, byte[] encryptedPrivateKey, byte[] privateKeyIv, byte[] encryptedDataKey, byte[] dataKeyIv) {
         this.encryptedFirstName = encryptedFirstName;
         this.encryptedLastName = encryptedLastName;
 
@@ -85,7 +87,28 @@ public class ClientEntity {
         this.privateKeyIv = privateKeyIv;
 
         this.encryptedDataKey = encryptedDataKey;
-        this.dataKeyNonce = dataKeyNonce;
+        this.dataKeyIv = dataKeyIv;
+    }
+
+    public void changePassword(byte[] loginHash, byte[] passwordSalt) {
+        this.loginHash = loginHash;
+        this.passwordSalt = passwordSalt;
+    }
+
+    public void changeKeyPair(byte[] publicKey, byte[] encryptedPrivateKey, byte[] privateKeyIv) {
+        this.publicKey = publicKey;
+        this.encryptedPrivateKey = encryptedPrivateKey;
+        this.privateKeyIv = privateKeyIv;
+    }
+
+    public void updatePrivateKey(byte[] encryptedPrivateKey, byte[] privateKeyIv) {
+        this.encryptedPrivateKey = encryptedPrivateKey;
+        this.privateKeyIv = privateKeyIv;
+    }
+
+    public void updateDataKey(byte[] encryptedDataKey, byte[] dataKeyIv) {
+        this.encryptedDataKey = encryptedDataKey;
+        this.dataKeyIv = dataKeyIv;
     }
 
     public XDH.PublicKey getPublicKey() {
@@ -115,7 +138,7 @@ public class ClientEntity {
 
     @Override
     public String toString() {
-        return "ClientEntity[messageId=" + this.id +
+        return "ClientEntity[internalId=" + this.id + ", internalId=" + this.internalId +
                 ", email=" + this.email +
                 ", createdAt=" + this.createdAt + ", lastSeenAt=" + this.lastSeenAt + "]";
     }

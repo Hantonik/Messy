@@ -21,12 +21,12 @@ public class ConversationParticipantEntity {
     private ConversationClientCompositeKey key = new ConversationClientCompositeKey();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("conversationId")
-    @JoinColumn(name = "conversation_id")
+    @MapsId("conversationInternalId")
+    @JoinColumn(name = "conversation_internal_id")
     private ConversationEntity conversation;
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("clientId")
-    @JoinColumn(name = "client_id")
+    @MapsId("clientInternalId")
+    @JoinColumn(name = "client_internal_id")
     private ClientEntity client;
 
     @Setter
@@ -40,7 +40,7 @@ public class ConversationParticipantEntity {
     private Boolean readOnly;
     @Setter
     @Generated(writable = true)
-    private Boolean isAdmin;
+    private Boolean admin;
 
     @Generated(writable = true)
     private Instant joinedAt;
@@ -48,9 +48,14 @@ public class ConversationParticipantEntity {
     @Nullable
     private Instant leftAt;
 
-    @Getter(AccessLevel.PRIVATE)
     @Version
+    @Getter(AccessLevel.PRIVATE)
     private Long version;
+
+    public ConversationParticipantEntity(ConversationEntity conversation, ClientEntity client) {
+        this.conversation = conversation;
+        this.client = client;
+    }
 
     @Override
     public boolean equals(Object obj) {
@@ -66,12 +71,13 @@ public class ConversationParticipantEntity {
 
     @Override
     public int hashCode() {
-        return this.key != null ? this.key.hashCode() : getClass().hashCode();
+        return this.key != null ? this.key.hashCode() : this.getClass().hashCode();
     }
 
     @Override
     public String toString() {
         return "ConversationParticipantEntity[key=" + this.key +
+                ", admin=" + this.admin +
                 ", joinedAt=" + this.joinedAt + ", leftAt=" + this.leftAt + "]";
     }
 }

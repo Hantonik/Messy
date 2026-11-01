@@ -11,12 +11,13 @@ import java.util.UUID;
 @Setter
 @EqualsAndHashCode
 @NoArgsConstructor
+@AllArgsConstructor
 public class ConversationClientCompositeKey implements Serializable {
-    private UUID conversationId;
-    private UUID clientId;
+    private UUID conversationInternalId;
+    private UUID clientInternalId;
 
     @Override
     public String toString() {
-        return "{conversationId=" + this.conversationId + ", clientId=" + this.clientId + "}";
+        return "{conversationInternalId=" + this.conversationInternalId + ", clientInternalId=" + this.clientInternalId + "}";
     }
 }

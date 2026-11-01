@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Generated;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
@@ -19,34 +20,51 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class FileEntity {
+    @Generated
+    @Column(updatable = false)
+    private UUID id;
     @Id
     @Generated
-    private UUID id;
+    private UUID internalId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id")
+    @JoinColumn(name = "uploaded_by_internal", updatable = false)
     @Nullable
-    private ClientEntity owner;
+    private ClientEntity uploadedBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(
             name = "message_attachments",
-            joinColumns = @JoinColumn(name = "file_id"),
-            inverseJoinColumns = @JoinColumn(name = "message_id")
+            joinColumns = @JoinColumn(name = "file_internal_id"),
+            inverseJoinColumns = @JoinColumn(name = "message_internal_id")
     )
+    @Nullable
     private MessageEntity message;
 
+    @Column(updatable = false)
     private String originalName;
+    @Column(updatable = false)
     private String mimeType;
 
+    @Column(updatable = false)
     private Long sizeBytes;
+    @Column(updatable = false)
     private byte[] sha256;
 
     @OneToMany(mappedBy = "file", cascade = CascadeType.ALL)
     private List<FileChunkEntity> fileChunks = Lists.newArrayList();
 
     @Generated(writable = true)
+    @Column(updatable = false)
     private Instant createdAt;
+
+    public FileEntity(@NonNull ClientEntity uploadedBy, String originalName, String mimeType, long sizeBytes, byte[] sha256) {
+        this.uploadedBy = uploadedBy;
+        this.originalName = originalName;
+        this.mimeType = mimeType;
+        this.sizeBytes = sizeBytes;
+        this.sha256 = sha256;
+    }
 
     @Override
     public boolean equals(Object obj) {
@@ -67,7 +85,7 @@ public class FileEntity {
 
     @Override
     public String toString() {
-        return "FileEntity[messageId=" + this.id +
+        return "FileEntity[internalId=" + this.id + ", internalId=" + this.internalId +
                 ", originalName=" + this.originalName + ", mimeType=" + this.mimeType +
                 ", sizeBytes=" + this.sizeBytes + ", createdAt=" + this.createdAt + "]";
     }

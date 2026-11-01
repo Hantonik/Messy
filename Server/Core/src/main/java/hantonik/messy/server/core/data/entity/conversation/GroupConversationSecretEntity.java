@@ -16,16 +16,23 @@ public class GroupConversationSecretEntity {
     private ConversationClientCompositeKey key = new ConversationClientCompositeKey();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("conversationId")
-    @JoinColumn(name = "conversation_id")
+    @MapsId("conversationInternalId")
+    @JoinColumn(name = "conversation_internal_id")
     private ConversationEntity conversation;
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("clientId")
-    @JoinColumn(name = "client_id")
+    @MapsId("clientInternalId")
+    @JoinColumn(name = "client_internal_id")
     private ClientEntity client;
 
     private byte[] encryptedKey;
     private byte[] keyNonce;
+
+    public GroupConversationSecretEntity(ConversationEntity conversation, ClientEntity client, byte[] encryptedKey, byte[] keyNonce) {
+        this.conversation = conversation;
+        this.client = client;
+        this.encryptedKey = encryptedKey;
+        this.keyNonce = keyNonce;
+    }
 
     @Override
     public boolean equals(Object obj) {
@@ -41,7 +48,7 @@ public class GroupConversationSecretEntity {
 
     @Override
     public int hashCode() {
-        return this.key != null ? this.key.hashCode() : getClass().hashCode();
+        return this.key != null ? this.key.hashCode() : this.getClass().hashCode();
     }
 
     @Override
