@@ -14,6 +14,9 @@ kotlin {
 
             implementation(libs.kotlinx.coroutines)
 
+            implementation(libs.ktor.network)
+            implementation(libs.ktor.utils)
+
             implementation(libs.cryptography.core)
             implementation(libs.cryptography.provider)
         }
@@ -29,11 +32,6 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
             implementation(libs.compose.ui.toolingPreview)
-        }
-
-        mobileMain.dependencies {
-            implementation(libs.ktor.network)
-            implementation(libs.ktor.utils)
         }
     }
 }

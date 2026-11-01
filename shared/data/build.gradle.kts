@@ -28,4 +28,3 @@ kotlin {
 dependencies {
     "jvmMainAnnotationProcessor"(libs.lombok)
 }
-
