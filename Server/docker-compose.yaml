@@ -1,0 +1,68 @@
+services:
+  messy-db:
+    build:
+      context: .
+      dockerfile: Docketfile.db
+    container_name: messy_db
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+  messy-server-core:
+    build:
+      context: .
+      args:
+        JAR_FILE: ./target/messy-core.jar
+    container_name: messy_server_core
+    depends_on:
+      - messy-db
+    environment:
+      DB_URL: jdbc:postgresql://messy-db:5432/${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+  messy-server-app:
+    build:
+      context: .
+      args:
+        JAR_FILE: ./target/messy-app.jar
+    container_name: messy_server_app
+    depends_on:
+      - messy-server-core
+    environment:
+      CORE_SERVICE_HOST: messy-server-core
+      CORE_SERVICE_PORT: 9090
+    ports:
+      - "34182:34182"
+
+  messy-server-web:
+    build:
+      context: .
+      args:
+        JAR_FILE: ./target/messy-web.jar
+    container_name: messy_server_web
+    depends_on:
+      - messy-server-core
+    environment:
+      CORE_SERVICE_HOST: messy-server-core
+      CORE_SERVICE_PORT: 9090
+    ports:
+      - "443:443"
+
+  proxy-nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - messy-server-web
+
+volumes:
+  postgres_data:
