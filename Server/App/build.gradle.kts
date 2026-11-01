@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":server:shared:api"))
+    implementation(project(":server:common:api"))
 
     implementation(libs.netty.buffer)
     implementation(libs.netty.codec)

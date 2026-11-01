@@ -12,8 +12,8 @@ dependencies {
     implementation(project(":shared:encryption"))
     implementation(project(":shared:util"))
 
-    implementation(project(":server:shared:grpc"))
-    implementation(project(":server:shared:util"))
+    implementation(project(":server:common:grpc"))
+    implementation(project(":server:common:util"))
 
     implementation(libs.findLibrary("google-guava").get())
     implementation(libs.findLibrary("commons-io").get())

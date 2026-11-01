@@ -25,7 +25,7 @@ rootProject.name = "Messy"
 
 include(
     "shared:data", "shared:encryption", "shared:network", "shared:util",
-    "server:shared:api", "server:shared:grpc", "server:shared:util",
+    "server:common:api", "server:common:grpc", "server:common:util",
     "server:core", "server:app", "server:web",
     "client:app:mobile", "client:app:desktop:sidecar"
 )
