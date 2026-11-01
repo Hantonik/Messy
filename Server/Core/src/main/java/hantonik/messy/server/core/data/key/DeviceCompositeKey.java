@@ -1,10 +1,7 @@
 package hantonik.messy.server.core.data.key;
 
 import io.netty.util.internal.MacAddressUtil;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -12,12 +9,13 @@ import java.util.UUID;
 @Setter
 @EqualsAndHashCode
 @NoArgsConstructor
+@AllArgsConstructor
 public class DeviceCompositeKey {
-    private UUID id;
+    private UUID internalId;
     private byte[] macAddress;
 
     @Override
     public String toString() {
-        return "{messageId=" + this.id + ", macAddress=" + MacAddressUtil.formatAddress(this.macAddress) + "}";
+        return "{internalId=" + this.internalId + ", macAddress=" + MacAddressUtil.formatAddress(this.macAddress) + "}";
     }
 }

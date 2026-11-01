@@ -1,0 +1,27 @@
+package hantonik.messy.server.core.data.repository;
+
+import hantonik.messy.server.core.data.entity.client.ClientEntity;
+import hantonik.messy.server.core.data.entity.client.ClientSessionEntity;
+import hantonik.messy.server.core.data.entity.device.DeviceEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Stream;
+
+@Repository
+public interface ClientSessionRepository extends JpaRepository<ClientSessionEntity, UUID> {
+    Optional<ClientSessionEntity> findByClientAndTokenHash(ClientEntity client, byte[] tokenHash);
+
+    @Deprecated
+    Optional<ClientSessionEntity> findByTokenHash(byte[] tokenHash);
+
+    Stream<ClientSessionEntity> streamAllByClient(ClientEntity client);
+
+    Stream<ClientSessionEntity> streamAllByDevice(DeviceEntity device);
+
+    @Query("SELECT c FROM ClientSessionEntity c ORDER BY c.expiresAt ASC")
+    Stream<ClientSessionEntity> streamAllFromMostExpired();
+}

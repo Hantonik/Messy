@@ -18,7 +18,7 @@ fun ClientEntity.toClientProfile(): ClientProfile {
     if (this.id == null)
         throw IllegalStateException("Cannot access data before database read")
 
-    return ClientProfile(this.id.toKotlinUuid(), this.icon?.toFileMetadata(), this.encryptedFirstName, this.encryptedLastName, this.email, this.phone, this.publicKey, this.encryptedPrivateKey, this.createdAt.toKotlinInstant(), this.deletedAt?.toKotlinInstant())
+    return ClientProfile(this.id.toKotlinUuid(), this.icon?.toFileMetadata(), this.encryptedFirstName, this.encryptedLastName, this.email, this.phone, this.publicKey, this.encryptedPrivateKey, this.privateKeyIv, this.encryptedDataKey, this.dataKeyIv, this.createdAt.toKotlinInstant(), this.deletedAt?.toKotlinInstant())
 }
 
 fun ClientEntity.getClientActivity(): ClientActivity {
@@ -36,8 +36,8 @@ fun ClientRelationEntity.toRelatedClientData(): RelatedClientData {
 }
 
 fun ClientSessionEntity.toClientSession(): ClientSession {
-    if (this.id == null)
+    if (this.tokenHash == null)
         throw IllegalStateException("Cannot access data before database read")
 
-    return ClientSession(this.id.toKotlinUuid(), this.clientId.toKotlinUuid(), this.device?.toDeviceInfo(), this.tokenHash, this.createdAt.toKotlinInstant(), this.expiresAt.toKotlinInstant(), this.lastUsedAt?.toKotlinInstant())
+    return ClientSession(this.client.id.toKotlinUuid(), this.tokenHash, this.encryptedPrivateKeyFragment, this.device?.toDeviceInfo(), this.createdAt.toKotlinInstant(), this.expiresAt.toKotlinInstant(), this.lastUsedAt?.toKotlinInstant())
 }

@@ -1,10 +1,7 @@
 package hantonik.messy.server.core.data.key;
 
 import jakarta.persistence.Embeddable;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -14,12 +11,13 @@ import java.util.UUID;
 @Setter
 @EqualsAndHashCode
 @NoArgsConstructor
+@AllArgsConstructor
 public class FileChunkCompositeKey implements Serializable {
-    private UUID fileId;
+    private UUID fileInternalId;
     private Integer chunkIndex;
 
     @Override
     public String toString() {
-        return "{fileId=" + this.fileId + ", chunkIndex=" + this.chunkIndex + "}";
+        return "{fileInternalId=" + this.fileInternalId + ", chunkIndex=" + this.chunkIndex + "}";
     }
 }

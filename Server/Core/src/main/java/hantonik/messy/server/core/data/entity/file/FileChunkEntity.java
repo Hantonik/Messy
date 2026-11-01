@@ -15,14 +15,23 @@ public class FileChunkEntity {
     private FileChunkCompositeKey key = new FileChunkCompositeKey();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("fileId")
-    @JoinColumn(name = "file_id")
+    @MapsId("fileInternalId")
+    @JoinColumn(name = "file_internal_id")
     private FileEntity file;
 
+    @Column(updatable = false)
     private byte[] encryptedChunk;
+    @Column(updatable = false)
     private byte[] chunkNonce;
 
-    public Integer getChunkIndex() {
+    public FileChunkEntity(FileEntity file, int chunkIndex, byte[] encryptedChunk, byte[] chunkNonce) {
+        this.key = new FileChunkCompositeKey(null, chunkIndex);
+        this.file = file;
+        this.encryptedChunk = encryptedChunk;
+        this.chunkNonce = chunkNonce;
+    }
+
+    public int getChunkIndex() {
         if (this.key == null)
             throw new IllegalStateException("Cannot gather chunkIndex value before database read");
 
@@ -43,7 +52,7 @@ public class FileChunkEntity {
 
     @Override
     public int hashCode() {
-        return this.key != null ? this.key.hashCode() : getClass().hashCode();
+        return this.key != null ? this.key.hashCode() : this.getClass().hashCode();
     }
 
     @Override

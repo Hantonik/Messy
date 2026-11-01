@@ -16,15 +16,24 @@ public class MessageSecretEntity {
     private MessageClientCompositeKey key = new MessageClientCompositeKey();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("messageId")
-    @JoinColumn(name = "message_id")
+    @MapsId("messageInternalId")
+    @JoinColumn(name = "message_internal_id")
     private MessageEntity message;
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("clientId")
-    @JoinColumn(name = "client_id")
+    @MapsId("clientInternalId")
+    @JoinColumn(name = "client_internal_id")
     private ClientEntity client;
 
     private byte[] encryptedKey;
+    private byte[] contentIv;
+
+    @Deprecated
+    public MessageSecretEntity(MessageEntity message, ClientEntity client, byte[] encryptedKey, byte[] contentIv) {
+        this.message = message;
+        this.client = client;
+        this.encryptedKey = encryptedKey;
+        this.contentIv = contentIv;
+    }
 
     @Override
     public boolean equals(Object obj) {
@@ -40,7 +49,7 @@ public class MessageSecretEntity {
 
     @Override
     public int hashCode() {
-        return this.key != null ? this.key.hashCode() : getClass().hashCode();
+        return this.key != null ? this.key.hashCode() : this.getClass().hashCode();
     }
 
     @Override

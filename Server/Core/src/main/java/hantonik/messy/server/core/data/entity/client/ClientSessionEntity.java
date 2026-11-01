@@ -1,6 +1,7 @@
 package hantonik.messy.server.core.data.entity.client;
 
 import hantonik.messy.server.core.data.entity.device.DeviceEntity;
+import hantonik.messy.server.core.data.key.ClientSessionCompositeKey;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -10,32 +11,32 @@ import org.hibernate.annotations.Generated;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
-import java.util.UUID;
+import java.util.Arrays;
 
 @Entity
-@Table(name = "clientSessions")
+@Table(name = "client_sessions")
+@IdClass(ClientSessionCompositeKey.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ClientSessionEntity {
     @Id
-    @Generated
-    private UUID id;
-
-    private UUID clientId;
-    @Nullable
-    private UUID deviceId;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "client_id")
+    @JoinColumn(name = "client_internal_id")
     private ClientEntity client;
+    @Id
+    @Column(updatable = false)
+    private byte[] tokenHash;
+
+    @Column(updatable = false)
+    private byte[] encryptedPrivateKeyFragment;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "device_id")
+    @JoinColumn(name = "device_internal_id", updatable = false)
     @Nullable
     private DeviceEntity device;
 
-    private byte[] tokenHash;
-
     @Generated(writable = true)
+    @Column(updatable = false)
     private Instant createdAt;
     @Setter
     private Instant expiresAt;
@@ -47,10 +48,15 @@ public class ClientSessionEntity {
     @Nullable
     private Instant revokedAt;
 
-    public ClientSessionEntity(UUID clientId, @Nullable UUID deviceId, byte[] tokenHash, Instant expiresAt) {
-        this.clientId = clientId;
-        this.deviceId = deviceId;
+    @Version
+    @Getter(AccessLevel.PRIVATE)
+    private Long version;
+
+    public ClientSessionEntity(ClientEntity client, byte[] tokenHash, byte[] encryptedPrivateKeyFragment, @Nullable DeviceEntity device, Instant expiresAt) {
+        this.client = client;
         this.tokenHash = tokenHash;
+        this.encryptedPrivateKeyFragment = encryptedPrivateKeyFragment;
+        this.device = device;
         this.expiresAt = expiresAt;
     }
 
@@ -63,7 +69,7 @@ public class ClientSessionEntity {
 
         var clientSession = (ClientSessionEntity) obj;
 
-        return this.id != null && this.id.equals(clientSession.id);
+        return this.tokenHash != null && Arrays.equals(this.tokenHash, clientSession.tokenHash);
     }
 
     @Override
@@ -73,7 +79,7 @@ public class ClientSessionEntity {
 
     @Override
     public String toString() {
-        return "ClientSessionEntity[messageId=" + this.id +
+        return "ClientSessionEntity[tokenHash=" + Arrays.toString(this.tokenHash) +
                 ", createdAt=" + this.createdAt + ", expiresAt=" + this.expiresAt +
                 ", lastUsedAt=" + this.lastUsedAt + ", revokedAt=" + this.revokedAt + "]";
     }

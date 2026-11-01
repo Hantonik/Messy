@@ -24,22 +24,27 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MessageEntity {
+    @Generated
+    @Column(updatable = false)
+    private UUID id;
     @Id
     @Generated
-    private UUID id;
+    private UUID internalId;
+
     @Generated
+    @Column(updatable = false)
     private Integer messageIndex;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "conversation_id")
+    @JoinColumn(name = "conversation_internal_id", updatable = false)
     private ConversationEntity conversation;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sender_id")
+    @JoinColumn(name = "sender_internal_id", updatable = false)
     private ClientEntity sender;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumns({
-            @JoinColumn(name = "conversation_id", referencedColumnName = "conversation_id", insertable = false, updatable = false),
-            @JoinColumn(name = "sender_id", referencedColumnName = "client_id", insertable = false, updatable = false)
+            @JoinColumn(name = "conversation_internal_id", referencedColumnName = "conversation_internal_id", insertable = false, updatable = false),
+            @JoinColumn(name = "sender_internal_id", referencedColumnName = "client_internal_id", insertable = false, updatable = false)
     })
     private ConversationParticipantEntity participant;
 
@@ -51,8 +56,6 @@ public class MessageEntity {
 
     @Nullable
     private byte[] encryptedContent;
-    @Nullable
-    private byte[] contentNonce;
 
     @OneToMany(mappedBy = "message", cascade = CascadeType.ALL)
     private List<MessageSecretEntity> messageSecrets = Lists.newArrayList();
@@ -60,16 +63,14 @@ public class MessageEntity {
     @OneToMany(cascade = CascadeType.ALL)
     @JoinTable(
             name = "message_attachments",
-            joinColumns = @JoinColumn(name = "message_id"),
-            inverseJoinColumns = @JoinColumn(name = "file_id")
+            joinColumns = @JoinColumn(name = "message_internal_id"),
+            inverseJoinColumns = @JoinColumn(name = "file_internal_id")
     )
     private List<FileEntity> fileAttachments = Lists.newArrayList();
 
     @Generated(writable = true)
+    @Column(updatable = false)
     private Instant sentAt;
-    @Setter
-    @Nullable
-    private Instant deliveredAt;
 
     @Setter
     @Generated(writable = true)
@@ -81,14 +82,21 @@ public class MessageEntity {
     @OneToMany(mappedBy = "message", cascade = CascadeType.ALL)
     private List<MessageReceiptEntity> messageReceipts = Lists.newArrayList();
 
-    @Getter(AccessLevel.PRIVATE)
     @Version
+    @Getter(AccessLevel.PRIVATE)
     private Long version;
+
+    public MessageEntity(ConversationEntity conversation, ClientEntity sender, MessageType messageType, boolean isSilent, @Nullable byte[] encryptedContent) {
+        this.conversation = conversation;
+        this.sender = sender;
+        this.messageType = messageType;
+        this.isSilent = isSilent;
+        this.encryptedContent = encryptedContent;
+    }
 
     public boolean hasFileAttached() {
         if (this.id == null)
             throw new IllegalStateException("Cannot gather file attachments before database read");
-
 
         return !this.fileAttachments.isEmpty();
     }
@@ -112,8 +120,9 @@ public class MessageEntity {
 
     @Override
     public String toString() {
-        return "MessageEntity[messageId=" + this.id + ", messageIndex=" + this.messageIndex +
+        return "MessageEntity[internalId=" + this.id + ", internalId=" + this.internalId +
+                ", messageIndex=" + this.messageIndex +
                 ", messageType=" + this.messageType + ", isSilent=" + this.isSilent +
-                ", sentAt=" + this.sentAt + ", deliveredAt=" + this.deliveredAt + ", updatedAt=" + this.updatedAt + ", deletedAt=" + this.deletedAt + "]";
+                ", sentAt=" + this.sentAt + ", updatedAt=" + this.updatedAt + ", deletedAt=" + this.deletedAt + "]";
     }
 }
