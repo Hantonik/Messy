@@ -27,5 +27,6 @@ include(
     "shared:data", "shared:encryption", "shared:network", "shared:util",
     "server:common:api", "server:common:grpc", "server:common:util",
     "server:core", "server:app", "server:web",
+    "client:app:common",
     "client:app:mobile", "client:app:desktop:sidecar"
 )

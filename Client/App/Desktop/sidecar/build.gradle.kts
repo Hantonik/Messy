@@ -3,6 +3,8 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":client:app:common"))
+
     implementation(project(":shared:data"))
     implementation(project(":shared:encryption"))
     implementation(project(":shared:network"))
